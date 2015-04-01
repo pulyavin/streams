@@ -1,0 +1,16 @@
+{
+    "name": "pulyavin/streams",
+    "type": "library",
+    "description": "PHP wrapper for multi curl",
+    "homepage": "https://github.com/pulyavin/streams",
+    "authors": [
+        {
+            "name": "matvey",
+            "email": "artemiy@pulyavin.ru"
+        }
+    ],
+    "require": {
+		"php": ">=5.3",
+		"ext-curl": "*"
+	}
+}
