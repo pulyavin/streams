@@ -6,7 +6,7 @@ class Stream
     private $info = [];
     private $callback;
     public $content;
-    public $setopt;
+    public $setopt = [];
 
     public function __construct(array $constants = [], \Closure $callback)
     {
@@ -49,11 +49,12 @@ class Stream
     /**
      * Возвращает объект curl
      *
+     * @param bool $boolean
      * @return resource
      */
-    public function getResource()
+    public function getResource($boolean = false)
     {
-        return $this->curl;
+        return $boolean ? (int)$this->curl : $this->curl;
     }
 
     /**

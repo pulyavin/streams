@@ -25,10 +25,11 @@ class Streamer
      *
      * @param $stream
      */
-    public function add($stream)
+    public function add(Stream $stream)
     {
+        /** @var $stream Stream */
         curl_multi_add_handle($this->curl, $stream->getResource());
-        $this->streams[(int)$stream->getResource()] = $stream;
+        $this->streams[$stream->getResource(true)] = $stream;
     }
 
     /**
