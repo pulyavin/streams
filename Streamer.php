@@ -1,12 +1,12 @@
-<?php
-namespace pulyavin\streams;
+<?php namespace pulyavin\streams;
 
 class Streamer
 {
     private $curl;
     private $streams = [];
 
-    public function __construct($streams) {
+    public function __construct($streams)
+    {
         if (!is_array($streams)) {
             $streams = [$streams];
         }
@@ -15,16 +15,27 @@ class Streamer
         $this->curl = curl_multi_init();
 
         foreach ($streams as $stream) {
+            /** @var $stream Stream */
             $this->add($stream);
         }
     }
 
-    public function add($stream) {
+    /**
+     * Добавление нового потока в пул
+     *
+     * @param $stream
+     */
+    public function add($stream)
+    {
         curl_multi_add_handle($this->curl, $stream->getResource());
         $this->streams[(int)$stream->getResource()] = $stream;
     }
 
-    public function exec() {
+    /**
+     * Запуск выполнения потоков
+     */
+    public function exec()
+    {
         $running = $messages = 0;
 
         do {
@@ -35,11 +46,12 @@ class Streamer
             do {
                 if ($read = curl_multi_info_read($this->curl, $messages)) {
                     $handle = $read['handle'];
-
-                    $this->streams[(int)$handle]->content = curl_multi_getcontent($handle);
-                    $this->streams[(int)$handle]->call($this->streams[(int)$handle]);
+                    /** @var $stream Stream */
+                    $stream = $this->streams[(int)$handle];
+                    $stream->content = curl_multi_getcontent($handle);
+                    $stream->call();
                 }
-            } while($messages);
+            } while ($messages);
 
             // помолимся, братья и сестры...
             usleep(1000);
@@ -53,7 +65,8 @@ class Streamer
     /**
      * Высвобождаем память
      */
-    private function destroy() {
+    private function destroy()
+    {
         if (get_resource_type($this->curl) == "curl_multi") {
             foreach ($this->streams as $stream) {
                 if ($stream->isResource()) {
@@ -66,7 +79,8 @@ class Streamer
         }
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->destroy();
     }
 }

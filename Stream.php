@@ -1,5 +1,4 @@
-<?php
-namespace pulyavin\streams;
+<?php namespace pulyavin\streams;
 
 class Stream
 {
@@ -9,7 +8,8 @@ class Stream
     public $content;
     public $setopt;
 
-    public function __construct(array $constants = [], \Closure $callback) {
+    public function __construct(array $constants = [], \Closure $callback)
+    {
         // инициализируем curl
         $this->curl = curl_init();
 
@@ -27,70 +27,88 @@ class Stream
 
     /**
      * Устанавливает одну константу
-     * 
+     *
      * @param $constant
      * @param $value
      */
-    public function setOpt($constant, $value) {
+    public function setOpt($constant, $value)
+    {
         curl_setopt($this->curl, $constant, $value);
     }
 
     /**
      * Устанавливает массив констант
-     * 
+     *
      * @param array $constants
      */
-    public function pushOpt(array $constants) {
+    public function pushOpt(array $constants)
+    {
         curl_setopt_array($this->curl, $constants);
     }
 
     /**
      * Возвращает объект curl
-     * 
+     *
      * @return resource
      */
-    public function getResource() {
+    public function getResource()
+    {
         return $this->curl;
     }
 
     /**
      * Вызывает callback-функцию
-     * 
+     *
      * @return resource
      */
-    public function call(self $stream) {
-        call_user_func($this->callback, $stream);
+    public function call()
+    {
+        call_user_func($this->callback, $this);
     }
 
-    public function getInfo($param = null) {
+    /**
+     * Возвращает данные функции curl_getinfo()
+     *
+     * @param null $param
+     * @return array|mixed|null
+     */
+    public function getInfo($param = null)
+    {
         if (empty($this->info)) {
             $this->info = curl_getinfo($this->curl);
         }
 
         if (empty($param)) {
             return $this->info;
-        }
-        else {
+        } else {
             return isset($this->info[$param]) ? $this->info[$param] : null;
         }
     }
 
     /**
-     * Закрывает curl
-     * 
+     * Закрывает curl-соединение
+     *
      * @return resource
      */
-    public function close() {
+    public function close()
+    {
         if ($this->isResource()) {
             curl_close($this->curl);
         }
     }
 
-    public function isResource() {
+    /**
+     * Узнаем, действительно ли мы работаем с curl
+     *
+     * @return bool
+     */
+    public function isResource()
+    {
         return get_resource_type($this->curl) == "curl";
     }
 
-    public function __destruct() {
+    public function __destruct()
+    {
         $this->close();
     }
 }
