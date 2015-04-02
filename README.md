@@ -31,7 +31,10 @@ try {
     $stream2 = new Stream("http://symfony.com", $callbackSymfony);
     $stream2->setOpt(CURLOPT_HEADER, true);
     $stream2->setOpt(CURLOPT_ENCODING, "gzip, deflate");
-
+    // additional Stream params
+    $stream2->setProxy("56.156.50.69:80", "username", "password");
+    $stream2->setCookie("./cookie.txt");
+    
     // or so...
     $stream3 = new Stream("http://yiiframework.com", $callback);
     $stream3->pushOpt([

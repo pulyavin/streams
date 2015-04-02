@@ -17,6 +17,12 @@ class Stream
      *
      * @var array
      */
+    private $headers = [];
+
+    /**
+     *
+     * @var array
+     */
     private $info = [];
 
     /**
@@ -87,6 +93,8 @@ class Stream
 
         // fix callback-function
         $this->callback = $callback;
+
+        return $this;
     }
 
     /**
@@ -94,22 +102,28 @@ class Stream
      *
      * @param $constant
      * @param $value
+     * @return $this
      */
     public function setOpt($constant, $value)
     {
         $this->options[$constant] = $value;
         curl_setopt($this->curl, $constant, $value);
+
+        return $this;
     }
 
     /**
      * Set up an array of constants
      *
      * @param array $constants
+     * @return $this
      */
     public function pushOpt(array $constants)
     {
         $this->options += $constants;
         curl_setopt_array($this->curl, $constants);
+
+        return $this;
     }
 
     /**
@@ -197,6 +211,47 @@ class Stream
     public function getContent()
     {
         return $this->content;
+    }
+
+    public function setProxy($host, $login = null, $password = null)
+    {
+        $this->setOpt(CURLOPT_PROXY, $host);
+
+        if (!empty($login)) {
+            $auth = $login . ":" . $password;
+            $this->setOpt(CURLOPT_PROXYUSERPWD, $auth);
+        }
+
+        return $this;
+    }
+
+    public function setCookie($file)
+    {
+        if (realpath($file)) {
+            touch($file);
+            $file = realpath($file);
+        }
+
+        $this->setOpt(CURLOPT_COOKIEJAR, $file);
+        $this->setOpt(CURLOPT_COOKIEFILE, $file);
+
+        return $this;
+    }
+
+    public function setHeader($param, $value)
+    {
+        $this->headers = array_merge($this->headers, [$param => $value]);
+        $this->setOpt(CURLOPT_HTTPHEADER, $this->headers);
+
+        return $this;
+    }
+
+    public function pushHeader(array $headers = []) {
+        foreach ($headers as $param => $value) {
+            $this->setHeader($param, $value);
+        }
+
+        return $this;
     }
 
     /**
