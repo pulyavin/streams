@@ -130,6 +130,38 @@ class Stream
         return $this->response;
     }
 
+    /**
+     * Set User Agent to HTTP headers
+     *
+     * @param $agent
+     * @return $this
+     */
+    public function setAgent($agent)
+    {
+        $this->setOpt(CURLOPT_USERAGENT, $agent);
+
+        return $this;
+    }
+
+    /**
+     * Set referer to HTTP headers
+     *
+     * @param $referer
+     * @return $this
+     */
+    public function setReferer($referer)
+    {
+        $this->setOpt(CURLOPT_REFERER, $referer);
+
+        return $this;
+    }
+
+    /**
+     * Add POST data to connection
+     *
+     * @param $data
+     * @return $this
+     */
     public function setPost($data) {
         $this->setOpt(CURLOPT_POST, true);
         $this->setOpt(CURLOPT_POSTFIELDS, $data);
@@ -148,7 +180,7 @@ class Stream
             $errno = curl_errno($this->curl);
         }
 
-        $this->setResponse($errno, $response);
+        return $this->setResponse($errno, $response);
     }
 
     /**
@@ -167,6 +199,7 @@ class Stream
      *
      * @param $errno
      * @param $response
+     * @return mixed|null
      */
     public function setResponse($errno, $response)
     {
@@ -174,6 +207,8 @@ class Stream
         $this->curl_errno = $errno;
 
         $this->raw = call_user_func($this->callback, $this);
+
+        return $this->raw;
     }
 
     /**

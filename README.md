@@ -106,6 +106,10 @@ try {
         CURLOPT_TIMEOUT        => 5,
     ]);
 
+    $stream->setAgent("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)");
+
+    $stream->setReferer("http://yandex.ru/");
+
     $stream->setProxy("56.156.50.69:80", "username", "password");
 
     $stream->setCookie("./cookie.txt");
@@ -125,7 +129,9 @@ try {
         'X-PARAM-FOURTH' => 'fourth',
     ]);
 
-    $stream->exec();
+    $raw = $stream->exec();
+    
+    var_dump($raw);
 }
 catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
