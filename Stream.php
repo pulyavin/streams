@@ -11,49 +11,49 @@ class Stream
      *
      * @var null|resource
      */
-    private $curl = null;
+    protected $curl = null;
 
     /**
      *
      * @var array
      */
-    private $headers = [];
+    protected $headers = [];
 
     /**
      *
      * @var array
      */
-    private $info = [];
+    protected $info = [];
 
     /**
      *
      * @var array
      */
-    private $error = [];
+    protected $error = [];
 
     /**
      *
      * @var null
      */
-    private $callback = null;
+    protected $callback = null;
 
     /**
      *
      * @var null
      */
-    private $content = null;
+    protected $content = null;
 
     /**
      *
      * @var null
      */
-    private $raw = null;
+    protected $raw = null;
 
     /**
      *
      * @var array
      */
-    private $options = [];
+    protected $options = [];
 
     /**
      * The number of seconds to wait while trying to connect
@@ -61,14 +61,14 @@ class Stream
      *
      * @var int
      */
-    private $connectTimeout = 10;
+    protected $connectTimeout = 10;
 
     /**
      *  The maximum number of seconds to allow cURL functions to execute
      *
      * @var int
      */
-    private $timeout = 10;
+    protected $timeout = 10;
 
 
     public function __construct($url, \Closure $callback)
@@ -279,7 +279,7 @@ class Stream
         $this->closeResource();
     }
 
-    function __clone()
+    public function __clone()
     {
         $this->curl = curl_copy_handle($this->curl);
     }

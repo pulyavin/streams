@@ -10,14 +10,14 @@ class Streamer
      * Multi Curl resource handler
      * @var array
      */
-    private $curl;
+    protected $curl;
 
     /**
      * Pool objects of Stream
      *
      * @var array
      */
-    private $streams = [];
+    protected $streams = [];
 
     public function __construct($streams)
     {
@@ -118,7 +118,7 @@ class Streamer
     /**
      * Destroy curl resources
      */
-    private function closeResource()
+    protected function closeResource()
     {
         if ($this->isResource()) {
             foreach ($this->streams as $stream) {
