@@ -1,8 +1,22 @@
 <?php namespace pulyavin\streams;
 
+/**
+ * Class Streamer
+ * @package pulyavin\streams
+ */
 class Streamer
 {
+    /**
+     * Multi Curl resource handler
+     * @var array
+     */
     private $curl;
+
+    /**
+     * Pool objects of Stream
+     *
+     * @var array
+     */
     private $streams = [];
 
     public function __construct($streams)
@@ -21,27 +35,45 @@ class Streamer
     }
 
     /**
-     * Добавление нового потока в пул
+     * Add new Stream in pool
      *
-     * @param $stream
+     * @param Stream $stream
+     * @throws Exception
      */
     public function add(Stream $stream)
     {
         /** @var $stream Stream */
+        if (!$stream->isResource()) {
+            throw new Exception("Is not a valid cURL Handle resource", Exception::INVALID_CURL);
+        }
+
         curl_multi_add_handle($this->curl, $stream->getResource());
         $this->streams[$stream->getResource(true)] = $stream;
     }
 
     /**
-     * Запуск выполнения потоков
+     * Execute multi curl
+     *
+     * @return boolean
+     * @throws Exception
      */
     public function exec()
     {
+        if (!$this->isResource()) {
+            throw new Exception("Is not a valid cURL Multi Handle resource", Exception::INVALID_MULTI_CURL);
+        }
+
+        if (empty($this->streams)) {
+            throw new Exception("Pull of streams is empty", Exception::PULL_IS_EMPTY);
+        }
+
         $running = $messages = 0;
 
         do {
             // сколько ещё необработанных потоков
-            curl_multi_exec($this->curl, $running);
+            if (($error = curl_multi_exec($this->curl, $running)) != 0) {
+                throw new Exception(curl_multi_strerror($error), Exception::MULTI_CURL_ERROR);
+            }
 
             // если готовые потоки, и сколько их в эту итерацию
             do {
@@ -49,8 +81,7 @@ class Streamer
                     $handle = $read['handle'];
                     /** @var $stream Stream */
                     $stream = $this->streams[(int)$handle];
-                    $stream->content = curl_multi_getcontent($handle);
-                    $stream->call();
+                    $stream->call($read['result'], curl_multi_getcontent($handle));
                 }
             } while ($messages);
 
@@ -60,19 +91,32 @@ class Streamer
         } while ($running);
 
         // закрываем дескрипторы
-        $this->destroy();
+        $this->closeResource();
+
+        return $this;
+    }
+
+    public function map(\Closure $callback) {
+        $map = [];
+
+        foreach ($this->streams as $stream) {
+            /** @var $stream Stream */
+            $map[] = call_user_func($callback, $stream->getRaw());
+        }
+
+        return $map;
     }
 
     /**
-     * Высвобождаем память
+     * Destroy curl resources
      */
-    private function destroy()
+    private function closeResource()
     {
-        if (get_resource_type($this->curl) == "curl_multi") {
+        if ($this->isResource()) {
             foreach ($this->streams as $stream) {
                 if ($stream->isResource()) {
                     curl_multi_remove_handle($this->curl, $stream->getResource());
-                    $stream->close();
+                    $stream->closeResource();
                 }
             }
 
@@ -80,8 +124,18 @@ class Streamer
         }
     }
 
+    /**
+     * Is it curl resource?
+     *
+     * @return bool
+     */
+    public function isResource()
+    {
+        return get_resource_type($this->curl) == "curl_multi";
+    }
+
     public function __destruct()
     {
-        $this->destroy();
+        $this->closeResource();
     }
 }

@@ -1,12 +1,53 @@
 <?php namespace pulyavin\streams;
 
+/**
+ * Class Stream
+ * @package pulyavin\streams
+ */
 class Stream
 {
-    private $curl;
+    /**
+     * Curl resource handler
+     *
+     * @var null|resource
+     */
+    private $curl = null;
+
+    /**
+     *
+     * @var array
+     */
     private $info = [];
-    private $callback;
-    public $content;
-    public $setopt = [];
+
+    /**
+     *
+     * @var array
+     */
+    private $error = [];
+
+    /**
+     *
+     * @var array
+     */
+    private $callback = null;
+
+    /**
+     *
+     * @var array
+     */
+    private $content = null;
+
+    /**
+     *
+     * @var array
+     */
+    private $raw = null;
+
+    /**
+     *
+     * @var array
+     */
+    private $options = [];
 
     public function __construct(array $constants = [], \Closure $callback)
     {
@@ -14,12 +55,12 @@ class Stream
         $this->curl = curl_init();
 
         // устанавливаем переданные значения
-        $setopt = [
+        $options = [
             CURLOPT_RETURNTRANSFER => true
         ];
-        $setopt += $constants;
-        $this->setopt = $setopt;
-        $this->pushOpt($this->setopt);
+        $options += $constants;
+        $this->options = $options;
+        $this->pushOpt($this->options);
 
         // запоминаем callback-обработчик
         $this->callback = $callback;
@@ -60,11 +101,15 @@ class Stream
     /**
      * Вызывает callback-функцию
      *
+     * @param $result
+     * @param $content
      * @return resource
      */
-    public function call()
+    public function call($result, $content)
     {
-        call_user_func($this->callback, $this);
+        $this->content = $content;
+
+        $this->raw = call_user_func($this->callback, $this);
     }
 
     /**
@@ -87,11 +132,48 @@ class Stream
     }
 
     /**
-     * Закрывает curl-соединение
+     * Возвращает ошибку curl
      *
-     * @return resource
+     * @return array|bool
      */
-    public function close()
+    public function getError() {
+        if (empty($this->error)) {
+            $this->error = [curl_errno($this->curl), curl_error($this->curl)];
+        }
+
+        if (empty($this->error[0])) {
+            return false;
+        } else {
+            return $this->error;
+        }
+    }
+
+    /**
+     * Возвращает установленные в curl параметры
+     *
+     * @param null $param
+     * @return array|null
+     */
+    public function getOpt($param = null) {
+        if (empty($param)) {
+            return $this->options;
+        } else {
+            return isset($this->options[$param]) ? $this->options[$param] : null;
+        }
+    }
+
+    public function getRaw() {
+        return $this->raw;
+    }
+
+    public function getContent() {
+        return $this->content;
+    }
+
+    /**
+     * Destroy curl resource
+     */
+    public function closeResource()
     {
         if ($this->isResource()) {
             curl_close($this->curl);
@@ -99,7 +181,7 @@ class Stream
     }
 
     /**
-     * Узнаем, действительно ли мы работаем с curl
+     * Is it curl resource?
      *
      * @return bool
      */
@@ -110,6 +192,11 @@ class Stream
 
     public function __destruct()
     {
-        $this->close();
+        $this->closeResource();
+    }
+
+    function __clone()
+    {
+        $this->curl = curl_copy_handle($this->curl);
     }
 }
