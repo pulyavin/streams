@@ -65,14 +65,14 @@ class Stream
      *
      * @var int
      */
-    protected $connectTimeout = 5;
+    protected $connectTimeout = 10;
 
     /**
      *  The maximum number of seconds to allow cURL functions to execute
      *
      * @var int
      */
-    protected $timeout = 5;
+    protected $timeout = 10;
 
 
     public function __construct($resource, \Closure $callback)
