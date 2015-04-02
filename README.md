@@ -24,8 +24,10 @@ $callbackSymfony = function($stream) {
 };
 
 try {
+    // new Stream object with native URL 
     $stream1 = new Stream("http://laravel.com", $callback);
     
+    // new Stream object with CURL-options
     $stream2 = new Stream([
         CURLOPT_URL => "http://symfony.com",
         CURLOPT_HEADER => true
@@ -36,7 +38,13 @@ try {
     $stream5 = new Stream([CURLOPT_URL => "http://www.codeigniter.com"], $callback);
     $stream6 = new Stream([CURLOPT_URL => "http://kohanaframework.org"], $callback);
 
-    $streamer = new Streamer([$stream1, $stream2, $stream3, $stream4, $stream5, $stream6]);
+    // add pool of Streams in constructor
+    $streamer = new Streamer([$stream1, $stream2, $stream3, $stream4]);
+    // or add with method add() in object
+    $streamer->add($stream5);
+    $streamer->add($stream6);
+    
+    // execution Streams
     $streamer->exec();
     
     $map = $streamer->map(function($raw) {
