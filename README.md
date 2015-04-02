@@ -80,13 +80,15 @@ You can use Stream as a single object, without putting it in pool of Streams
 ```php
 use pulyavin\streams\Stream;
 
-$callback = function ($stream) {
+$search = "some line";
+
+$callback = function ($stream) use ($search) {
     /** @var $stream Stream */
     var_dump($stream->getError());
     var_dump($stream->getOpt());
 
     // to use in Streamer::map
-    return $stream->getResponse();
+    return stripos($stream->getResponse(), $search);
 };
 
 try {
