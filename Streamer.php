@@ -81,7 +81,7 @@ class Streamer
                     $handle = $read['handle'];
                     /** @var $stream Stream */
                     $stream = $this->streams[(int)$handle];
-                    $stream->call($read['result'], curl_multi_getcontent($handle));
+                    $stream->setResponse($read['result'], curl_multi_getcontent($handle));
                 }
             } while ($messages);
 
@@ -96,6 +96,13 @@ class Streamer
         return $this;
     }
 
+
+    /**
+     * Applies the callback to the raw of Streams
+     *
+     * @param callable $callback
+     * @return array
+     */
     public function map(\Closure $callback) {
         $map = [];
 

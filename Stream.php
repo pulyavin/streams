@@ -27,19 +27,19 @@ class Stream
 
     /**
      *
-     * @var array
+     * @var null
      */
     private $callback = null;
 
     /**
      *
-     * @var array
+     * @var null
      */
     private $content = null;
 
     /**
      *
-     * @var array
+     * @var null
      */
     private $raw = null;
 
@@ -49,16 +49,28 @@ class Stream
      */
     private $options = [];
 
-    public function __construct(array $constants = [], \Closure $callback)
+    /**
+     *
+     * @var array
+     */
+    private $connectTimeout = 10;
+    private $timeout = 10;
+
+
+    public function __construct(array $options = [], \Closure $callback)
     {
         // инициализируем curl
         $this->curl = curl_init();
 
         // устанавливаем переданные значения
-        $options = [
-            CURLOPT_RETURNTRANSFER => true
+        $default = [
+            CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_FOLLOWLOCATION => true,
+            CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
+            CURLOPT_TIMEOUT        => $this->timeout,
         ];
-        $options += $constants;
+        $options += $default;
         $this->options = $options;
         $this->pushOpt($this->options);
 
@@ -105,7 +117,7 @@ class Stream
      * @param $content
      * @return resource
      */
-    public function call($result, $content)
+    public function setResponse($result, $content)
     {
         $this->content = $content;
 
@@ -136,7 +148,8 @@ class Stream
      *
      * @return array|bool
      */
-    public function getError() {
+    public function getError()
+    {
         if (empty($this->error)) {
             $this->error = [curl_errno($this->curl), curl_error($this->curl)];
         }
@@ -154,7 +167,8 @@ class Stream
      * @param null $param
      * @return array|null
      */
-    public function getOpt($param = null) {
+    public function getOpt($param = null)
+    {
         if (empty($param)) {
             return $this->options;
         } else {
@@ -162,11 +176,13 @@ class Stream
         }
     }
 
-    public function getRaw() {
+    public function getRaw()
+    {
         return $this->raw;
     }
 
-    public function getContent() {
+    public function getContent()
+    {
         return $this->content;
     }
 
