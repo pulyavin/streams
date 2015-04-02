@@ -14,12 +14,14 @@ class Stream
     protected $curl = null;
 
     /**
+     * Array of additional HTTP headers
      *
      * @var array
      */
     protected $headers = [];
 
     /**
+     * Cache of CURL connection info
      *
      * @var array
      */
@@ -29,7 +31,7 @@ class Stream
      *
      * @var array
      */
-    protected $error = [];
+    protected $curl_errno = 0;
 
     /**
      *
@@ -41,15 +43,17 @@ class Stream
      *
      * @var null
      */
-    protected $content = null;
+    protected $response = null;
 
     /**
+     * The raw returned by the callback function
      *
      * @var null
      */
     protected $raw = null;
 
     /**
+     * Array of CURL options, used in this connection
      *
      * @var array
      */
@@ -61,31 +65,50 @@ class Stream
      *
      * @var int
      */
-    protected $connectTimeout = 10;
+    protected $connectTimeout = 5;
 
     /**
      *  The maximum number of seconds to allow cURL functions to execute
      *
      * @var int
      */
-    protected $timeout = 10;
+    protected $timeout = 5;
 
 
-    public function __construct($url, \Closure $callback)
+    public function __construct($resource, \Closure $callback)
     {
-        if (empty($url)) {
+        if (empty($resource)) {
             throw new Exception("URL is empty", Exception::URL_IS_EMPTY);
         }
 
+        // $resource consist of URL and additional GET params
+        if (is_array($resource)) {
+            $params = isset($resource[1]) ? $resource[1] : [];
+            $resource = isset($resource[0]) ? $resource[0] : null;
+
+            if (empty($resource)) {
+                throw new Exception("URL is empty", Exception::URL_IS_EMPTY);
+            }
+
+            $query = parse_url($resource, PHP_URL_QUERY);
+            parse_str($query, $output);
+            $params += $output;
+
+            if (!empty($params)) {
+                $resource = current(explode("?", $resource)) . "?" . http_build_query($params);
+            }
+        }
+
         // init curl
-        $this->curl = curl_init($url);
+        $this->curl = curl_init($resource);
 
         // set default options
         $default = [
             CURLOPT_RETURNTRANSFER => true,
+            CURLOPT_POST           => false,
+            CURLOPT_AUTOREFERER    => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
-            CURLOPT_AUTOREFERER    => true,
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT        => $this->timeout,
         ];
@@ -95,6 +118,110 @@ class Stream
         $this->callback = $callback;
 
         return $this;
+    }
+
+    public function getRaw()
+    {
+        return $this->raw;
+    }
+
+    public function getResponse()
+    {
+        return $this->response;
+    }
+
+    public function setPost($data) {
+        $this->setOpt(CURLOPT_POST, true);
+        $this->setOpt(CURLOPT_POSTFIELDS, $data);
+
+        return $this;
+    }
+
+    /**
+     * Execute this Stream
+     */
+    public function exec()
+    {
+        $errno = 0;
+
+        if (($response = curl_exec($this->curl)) === false) {
+            $errno = curl_errno($this->curl);
+        }
+
+        $this->setResponse($errno, $response);
+    }
+
+    /**
+     * Returns CURL handler
+     *
+     * @param bool $boolean
+     * @return resource
+     */
+    public function getResource($boolean = false)
+    {
+        return $boolean ? (int)$this->curl : $this->curl;
+    }
+
+    /**
+     * Set response and call callback function
+     *
+     * @param $errno
+     * @param $response
+     */
+    public function setResponse($errno, $response)
+    {
+        $this->response = $response;
+        $this->curl_errno = $errno;
+
+        $this->raw = call_user_func($this->callback, $this);
+    }
+
+    /**
+     * Return curl options
+     *
+     * @param null $param
+     * @return array|null
+     */
+    public function getOpt($param = null)
+    {
+        if (empty($param)) {
+            return $this->options;
+        } else {
+            return isset($this->options[$param]) ? $this->options[$param] : null;
+        }
+    }
+
+    /**
+     * Returns data of connection
+     *
+     * @param null $param
+     * @return array|mixed|null
+     */
+    public function getInfo($param = null)
+    {
+        if (empty($this->info)) {
+            $this->info = curl_getinfo($this->curl);
+        }
+
+        if (empty($param)) {
+            return $this->info;
+        } else {
+            return isset($this->info[$param]) ? $this->info[$param] : null;
+        }
+    }
+
+    /**
+     * Returns curl error
+     *
+     * @return string|bool
+     */
+    public function getError()
+    {
+        if (!empty($this->curl_errno)) {
+            return curl_error($this->curl);
+        }
+
+        return false;
     }
 
     /**
@@ -127,95 +254,16 @@ class Stream
     }
 
     /**
-     * Returns CURL handler
+     * Use proxy connection for this Stream
      *
-     * @param bool $boolean
-     * @return resource
+     * @param $proxy
+     * @param null $login
+     * @param null $password
+     * @return $this
      */
-    public function getResource($boolean = false)
+    public function setProxy($proxy, $login = null, $password = null)
     {
-        return $boolean ? (int)$this->curl : $this->curl;
-    }
-
-    /**
-     * Вызывает callback-функцию
-     *
-     * @param $result
-     * @param $content
-     * @return resource
-     */
-    public function setResponse($result, $content)
-    {
-        $this->content = $content;
-
-        $this->raw = call_user_func($this->callback, $this);
-    }
-
-    /**
-     * Return data of curl_getinfo()
-     *
-     * @param null $param
-     * @return array|mixed|null
-     */
-    public function getInfo($param = null)
-    {
-        if (empty($this->info)) {
-            $this->info = curl_getinfo($this->curl);
-        }
-
-        if (empty($param)) {
-            return $this->info;
-        } else {
-            return isset($this->info[$param]) ? $this->info[$param] : null;
-        }
-    }
-
-    /**
-     * Возвращает ошибку curl
-     *
-     * @return array|bool
-     */
-    public function getError()
-    {
-        if (empty($this->error)) {
-            $this->error = [curl_errno($this->curl), curl_error($this->curl)];
-        }
-
-        if (empty($this->error[0])) {
-            return false;
-        } else {
-            return $this->error;
-        }
-    }
-
-    /**
-     * Возвращает установленные в curl параметры
-     *
-     * @param null $param
-     * @return array|null
-     */
-    public function getOpt($param = null)
-    {
-        if (empty($param)) {
-            return $this->options;
-        } else {
-            return isset($this->options[$param]) ? $this->options[$param] : null;
-        }
-    }
-
-    public function getRaw()
-    {
-        return $this->raw;
-    }
-
-    public function getContent()
-    {
-        return $this->content;
-    }
-
-    public function setProxy($host, $login = null, $password = null)
-    {
-        $this->setOpt(CURLOPT_PROXY, $host);
+        $this->setOpt(CURLOPT_PROXY, $proxy);
 
         if (!empty($login)) {
             $auth = $login . ":" . $password;
@@ -225,11 +273,21 @@ class Stream
         return $this;
     }
 
+    /**
+     * File for save cookie data
+     *
+     * @param $file
+     * @return $this
+     * @throws Exception
+     */
     public function setCookie($file)
     {
-        if (realpath($file)) {
+        if (!file_exists($file)) {
             touch($file);
-            $file = realpath($file);
+        }
+
+        if (($file = realpath($file)) == false) {
+            throw new Exception("Invalid path to cookie file", Exception::INVALID_COOKIE_FILE);
         }
 
         $this->setOpt(CURLOPT_COOKIEJAR, $file);
@@ -238,6 +296,12 @@ class Stream
         return $this;
     }
 
+    /**
+     * Set up a header value
+     * @param $param
+     * @param $value
+     * @return $this
+     */
     public function setHeader($param, $value)
     {
         $this->headers = array_merge($this->headers, [$param => $value]);
@@ -246,7 +310,13 @@ class Stream
         return $this;
     }
 
-    public function pushHeader(array $headers = []) {
+    /**
+     * Set up an array of headers
+     * @param array $headers
+     * @return $this
+     */
+    public function pushHeader(array $headers = [])
+    {
         foreach ($headers as $param => $value) {
             $this->setHeader($param, $value);
         }
@@ -281,6 +351,6 @@ class Stream
 
     public function __clone()
     {
-        $this->curl = curl_copy_handle($this->curl);
+        throw new Exception("Cloning is prohibited", Exception::CLONING);
     }
 }

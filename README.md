@@ -4,14 +4,13 @@ PHP wrapper for multi curl
 ```php
 use pulyavin\streams\Stream;
 use pulyavin\streams\Streamer;
-use pulyavin\streams\Exception;
 
 $callback = function($stream) {
     /** @var $stream Stream */
     var_dump($stream->getInfo("url"));
     
     // to use in Streamer::map
-    return $stream->getContent();
+    return $stream->getResponse();
 };
 
 $callbackSymfony = function($stream) {
@@ -20,30 +19,39 @@ $callbackSymfony = function($stream) {
     var_dump($stream->getOpt());
     
     // to use in Streamer::map
-    return $stream->getContent();
+    return $stream->getResponse();
 };
 
 try {
     // new Stream object
     $stream1 = new Stream("http://laravel.com", $callback);
 
+    // new Stream object with additional GET params
+    // URL will be http://phalconphp.com?page=download&lang=eng
+    $stream2 = new Stream([
+        "http://phalconphp.com",
+        [
+            'page' => 'download',
+            'lang' => 'eng'
+        ]
+    ], $callback);
+    
     // new Stream object with additional CURL-options
-    $stream2 = new Stream("http://symfony.com", $callbackSymfony);
-    $stream2->setOpt(CURLOPT_HEADER, true);
-    $stream2->setOpt(CURLOPT_ENCODING, "gzip, deflate");
-    // additional Stream params
-    $stream2->setProxy("56.156.50.69:80", "username", "password");
-    $stream2->setCookie("./cookie.txt");
+    $stream3 = new Stream("http://symfony.com", $callbackSymfony);
+    $stream3->setOpt(CURLOPT_HEADER, true);
+    $stream3->setOpt(CURLOPT_ENCODING, "gzip, deflate");
+    // additional Stream tools
+    $stream3->setProxy("56.156.50.69:80", "username", "password");
+    $stream3->setCookie("./cookie.txt");
     
     // or this way...
-    $stream3 = new Stream("http://yiiframework.com", $callback);
-    $stream3->pushOpt([
+    $stream4 = new Stream("http://yiiframework.com", $callback);
+    $stream4->pushOpt([
         CURLOPT_HEADER         => true,
         CURLOPT_CONNECTTIMEOUT => 5,
         CURLOPT_TIMEOUT        => 5,
     ]);
 
-    $stream4 = new Stream("http://phalconphp.com", $callback);
     $stream5 = new Stream("http://www.codeigniter.com", $callback);
     $stream6 = new Stream("http://kohanaframework.org", $callback);
 
@@ -62,7 +70,64 @@ try {
 
     var_dump($map);
 }
-catch (Exception $e) {
+catch (pulyavin\streams\Exception $e) {
+    echo $e->getMessage();
+}
+```
+
+You can use Stream as a single object, without putting it in pool of Streams
+
+```php
+use pulyavin\streams\Stream;
+
+$callback = function ($stream) {
+    /** @var $stream Stream */
+    var_dump($stream->getError());
+    var_dump($stream->getOpt());
+
+    // to use in Streamer::map
+    return $stream->getResponse();
+};
+
+try {
+    $stream = new Stream([
+        "http://google.com",
+        [
+            'q'       => 'Hello world!',
+            'channel' => 'fs'
+        ]
+    ], $callback);
+
+    $stream->setOpt(CURLOPT_HEADER, true);
+    $stream->setOpt(CURLOPT_ENCODING, "gzip, deflate");
+
+    $stream->pushOpt([
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT        => 5,
+    ]);
+
+    $stream->setProxy("56.156.50.69:80", "username", "password");
+
+    $stream3->setCookie("./cookie.txt");
+
+    $stream->setPost([
+        'client' => 'linux',
+        'ie'     => 'utf-8',
+        'oe'     => 'utf-8',
+        'ei'     => 'L6gzVZ31CAeZ4cTlpICgBA',
+    ]);
+
+    $stream->setHeader("X-PARAM-FIRST", "first");
+    $stream->setHeader("X-PARAM-SECOND", "second");
+
+    $stream->pushHeader([
+        'X-PARAM-THIRD'  => 'third',
+        'X-PARAM-FOURTH' => 'fourth',
+    ]);
+
+    $streamer->exec();
+}
+catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
 }
 ```
