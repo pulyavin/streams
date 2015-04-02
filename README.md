@@ -108,7 +108,7 @@ try {
 
     $stream->setProxy("56.156.50.69:80", "username", "password");
 
-    $stream3->setCookie("./cookie.txt");
+    $stream->setCookie("./cookie.txt");
 
     $stream->setPost([
         'client' => 'linux',
@@ -125,7 +125,7 @@ try {
         'X-PARAM-FOURTH' => 'fourth',
     ]);
 
-    $streamer->exec();
+    $stream->exec();
 }
 catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
