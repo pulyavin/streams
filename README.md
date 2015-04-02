@@ -24,9 +24,14 @@ $callbackSymfony = function($stream) {
 };
 
 try {
-    $stream1 = new Stream([CURLOPT_URL => "http://laravel.com"], $callback);
-    $stream2 = new Stream([CURLOPT_URL => "http://yiiframework.com"], $callback);
-    $stream3 = new Stream([CURLOPT_URL => "http://symfony.com"], $callbackSymfony);
+    $stream1 = new Stream("http://laravel.com", $callback);
+    
+    $stream2 = new Stream([
+        CURLOPT_URL => "http://symfony.com",
+        CURLOPT_HEADER => true
+    ], $callbackSymfony);
+
+    $stream3 = new Stream([CURLOPT_URL => "http://yiiframework.com"], $callback);
     $stream4 = new Stream([CURLOPT_URL => "http://www.phalconphp.com"], $callback);
     $stream5 = new Stream([CURLOPT_URL => "http://www.codeigniter.com"], $callback);
     $stream6 = new Stream([CURLOPT_URL => "http://kohanaframework.org"], $callback);

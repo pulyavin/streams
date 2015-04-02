@@ -57,12 +57,18 @@ class Stream
     private $timeout = 10;
 
 
-    public function __construct(array $options = [], \Closure $callback)
+    public function __construct($options, \Closure $callback)
     {
         // инициализируем curl
         $this->curl = curl_init();
 
         // устанавливаем переданные значения
+        if (!is_array($options)) {
+            $options = [
+                CURLOPT_URL => $options
+            ];
+        }
+
         $default = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
@@ -70,8 +76,10 @@ class Stream
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT        => $this->timeout,
         ];
+
         $options += $default;
         $this->options = $options;
+
         $this->pushOpt($this->options);
 
         // запоминаем callback-обработчик
