@@ -50,65 +50,70 @@ class Stream
     private $options = [];
 
     /**
+     * The number of seconds to wait while trying to connect
+     * Use 0 to wait indefinitely
      *
-     * @var array
+     * @var int
      */
     private $connectTimeout = 10;
+
+    /**
+     *  The maximum number of seconds to allow cURL functions to execute
+     *
+     * @var int
+     */
     private $timeout = 10;
 
 
-    public function __construct($options, \Closure $callback)
+    public function __construct($url, \Closure $callback)
     {
-        // инициализируем curl
-        $this->curl = curl_init();
-
-        // устанавливаем переданные значения
-        if (!is_array($options)) {
-            $options = [
-                CURLOPT_URL => $options
-            ];
+        if (empty($url)) {
+            throw new Exception("URL is empty", Exception::URL_IS_EMPTY);
         }
 
+        // init curl
+        $this->curl = curl_init($url);
+
+        // set default options
         $default = [
             CURLOPT_RETURNTRANSFER => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
+            CURLOPT_AUTOREFERER    => true,
             CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
             CURLOPT_TIMEOUT        => $this->timeout,
         ];
+        $this->pushOpt($default);
 
-        $options += $default;
-        $this->options = $options;
-
-        $this->pushOpt($this->options);
-
-        // запоминаем callback-обработчик
+        // fix callback-function
         $this->callback = $callback;
     }
 
     /**
-     * Устанавливает одну константу
+     * Set up a constant value
      *
      * @param $constant
      * @param $value
      */
     public function setOpt($constant, $value)
     {
+        $this->options[$constant] = $value;
         curl_setopt($this->curl, $constant, $value);
     }
 
     /**
-     * Устанавливает массив констант
+     * Set up an array of constants
      *
      * @param array $constants
      */
     public function pushOpt(array $constants)
     {
+        $this->options += $constants;
         curl_setopt_array($this->curl, $constants);
     }
 
     /**
-     * Возвращает объект curl
+     * Returns CURL handler
      *
      * @param bool $boolean
      * @return resource
@@ -133,7 +138,7 @@ class Stream
     }
 
     /**
-     * Возвращает данные функции curl_getinfo()
+     * Return data of curl_getinfo()
      *
      * @param null $param
      * @return array|mixed|null

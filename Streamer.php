@@ -103,7 +103,8 @@ class Streamer
      * @param callable $callback
      * @return array
      */
-    public function map(\Closure $callback) {
+    public function map(\Closure $callback)
+    {
         $map = [];
 
         foreach ($this->streams as $stream) {
@@ -121,6 +122,7 @@ class Streamer
     {
         if ($this->isResource()) {
             foreach ($this->streams as $stream) {
+                /** @var $stream Stream */
                 if ($stream->isResource()) {
                     curl_multi_remove_handle($this->curl, $stream->getResource());
                     $stream->closeResource();

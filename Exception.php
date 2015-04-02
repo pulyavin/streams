@@ -5,4 +5,5 @@ class Exception extends \Exception {
     const INVALID_CURL = 2;
     const PULL_IS_EMPTY = 3;
     const MULTI_CURL_ERROR = 4;
+    const URL_IS_EMPTY = 5;
 }

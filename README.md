@@ -24,33 +24,39 @@ $callbackSymfony = function($stream) {
 };
 
 try {
-    // new Stream object with native URL 
+    // new Stream object
     $stream1 = new Stream("http://laravel.com", $callback);
-    
-    // new Stream object with CURL-options
-    $stream2 = new Stream([
-        CURLOPT_URL => "http://symfony.com",
-        CURLOPT_HEADER => true
-    ], $callbackSymfony);
 
-    $stream3 = new Stream([CURLOPT_URL => "http://yiiframework.com"], $callback);
-    $stream4 = new Stream([CURLOPT_URL => "http://www.phalconphp.com"], $callback);
-    $stream5 = new Stream([CURLOPT_URL => "http://www.codeigniter.com"], $callback);
-    $stream6 = new Stream([CURLOPT_URL => "http://kohanaframework.org"], $callback);
+    // new Stream object with additional CURL-options
+    $stream2 = new Stream("http://symfony.com", $callbackSymfony);
+    $stream2->setOpt(CURLOPT_HEADER, true);
+    $stream2->setOpt(CURLOPT_ENCODING, "gzip, deflate");
+
+    // or so...
+    $stream3 = new Stream("http://yiiframework.com", $callback);
+    $stream3->pushOpt([
+        CURLOPT_HEADER         => true,
+        CURLOPT_CONNECTTIMEOUT => 5,
+        CURLOPT_TIMEOUT        => 5,
+    ]);
+
+    $stream4 = new Stream("http://phalconphp.com", $callback);
+    $stream5 = new Stream("http://www.codeigniter.com", $callback);
+    $stream6 = new Stream("http://kohanaframework.org", $callback);
 
     // add pool of Streams in constructor
     $streamer = new Streamer([$stream1, $stream2, $stream3, $stream4]);
-    // or add with method add() in object
+    // or add them separately using method add() in Streamer-object
     $streamer->add($stream5);
     $streamer->add($stream6);
-    
-    // execution Streams
+
+    // Streams execution
     $streamer->exec();
-    
-    $map = $streamer->map(function($raw) {
+
+    $map = $streamer->map(function ($raw) {
         return strlen($raw);
     });
-    
+
     var_dump($map);
 }
 catch (Exception $e) {
