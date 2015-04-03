@@ -2,7 +2,6 @@
 PHP wrapper for multi curl
 
 ```php
-
 use pulyavin\streams\Stream;
 use pulyavin\streams\Streamer;
 
