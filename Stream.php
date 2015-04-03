@@ -39,6 +39,7 @@ class Stream
      * @var array
      */
     protected $curl_errno = 0;
+    protected $curl_error = null;
 
     /**
      *
@@ -182,6 +183,10 @@ class Stream
      */
     public function exec()
     {
+        if (!$this->isResource()) {
+            throw new Exception("Is not a valid cURL Handle resource", Exception::INVALID_CURL);
+        }
+
         $errno = 0;
 
         if (($response = curl_exec($this->curl)) === false) {
@@ -212,9 +217,13 @@ class Stream
     public function setResponse($errno, $response)
     {
         $this->response = $response;
+
         $this->curl_errno = $errno;
+        $this->curl_error = curl_error($this->curl);
 
         $this->raw = call_user_func($this->callback, $this);
+
+        $this->closeResource();
 
         return $this->raw;
     }
@@ -261,7 +270,7 @@ class Stream
     public function getError()
     {
         if (!empty($this->curl_errno)) {
-            return curl_error($this->curl);
+            return $this->curl_error;
         }
 
         return false;
@@ -354,7 +363,7 @@ class Stream
     }
 
     /**
-     * File for save cookie data
+     * File for saving cookie data
      *
      * @param $file
      * @return $this

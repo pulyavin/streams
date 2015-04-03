@@ -2,22 +2,23 @@
 PHP wrapper for multi curl
 
 ```php
+
 use pulyavin\streams\Stream;
 use pulyavin\streams\Streamer;
 
-$callback = function($stream) {
+$callback = function ($stream) {
     /** @var $stream Stream */
     var_dump($stream->getInfo("url"));
-    
+
     // to use in Streamer::map
     return $stream->getResponse();
 };
 
-$callbackSymfony = function($stream) {
+$callbackSymfony = function ($stream) {
     /** @var $stream Stream */
     var_dump($stream->getError());
     var_dump($stream->getOpt());
-    
+
     // to use in Streamer::map
     return $stream->getResponse();
 };
@@ -35,7 +36,7 @@ try {
             'lang' => 'eng'
         ]
     ], $callback);
-    
+
     // new Stream object with additional CURL-options
     $stream3 = new Stream("http://symfony.com", $callbackSymfony);
     $stream3->setOpt(CURLOPT_HEADER, true);
@@ -43,7 +44,7 @@ try {
     // additional Stream tools
     $stream3->setProxy("56.156.50.69:80", "username", "password");
     $stream3->saveCookie("./cookie.txt");
-    
+
     // or this way...
     $stream4 = new Stream("http://yiiframework.com", $callback);
     $stream4->pushOpt([
@@ -58,8 +59,8 @@ try {
     $stream5->setCookie("last", "1418197053");
     // push some cookie params
     $stream5->pushCookie([
-        'banner'  => '1',
-        'guest' => '1',
+        'banner' => '1',
+        'guest'  => '1',
     ]);
     // and we will be have in HTTP headers:
     // Cookie: name=John; last=1418197053; banner=1; guest=1;
@@ -80,8 +81,7 @@ try {
     });
 
     var_dump($map);
-}
-catch (pulyavin\streams\Exception $e) {
+} catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
 }
 ```
