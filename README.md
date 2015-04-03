@@ -65,12 +65,16 @@ try {
     // Cookie: name=John; last=1418197053; banner=1; guest=1;
 
     $stream6 = new Stream("http://kohanaframework.org", $callback);
-
+    $stream7 = new Stream("http://cakephp.org", $callback);
+    $stream8 = new Stream("http://framework.zend.com", $callback);
+    
     // add pool of Streams in constructor
     $streamer = new Streamer([$stream1, $stream2, $stream3, $stream4]);
     // or add them separately using method add() in Streamer-object
     $streamer->add($stream5);
     $streamer->add($stream6);
+    $streamer->add($stream7);
+    $streamer->add($stream8);
 
     // Streams execution
     $streamer->exec();
