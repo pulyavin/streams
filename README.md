@@ -42,7 +42,7 @@ try {
     $stream3->setOpt(CURLOPT_ENCODING, "gzip, deflate");
     // additional Stream tools
     $stream3->setProxy("56.156.50.69:80", "username", "password");
-    $stream3->setCookie("./cookie.txt");
+    $stream3->saveCookie("./cookie.txt");
     
     // or this way...
     $stream4 = new Stream("http://yiiframework.com", $callback);
@@ -53,6 +53,17 @@ try {
     ]);
 
     $stream5 = new Stream("http://www.codeigniter.com", $callback);
+    // set some cookie params
+    $stream5->setCookie("name", "John");
+    $stream5->setCookie("last", "1418197053");
+    // push some cookie params
+    $stream5->pushCookie([
+        'banner'  => '1',
+        'guest' => '1',
+    ]);
+    // and we will be have in HTTP headers:
+    // Cookie: name=John; last=1418197053; banner=1; guest=1;
+
     $stream6 = new Stream("http://kohanaframework.org", $callback);
 
     // add pool of Streams in constructor
@@ -114,7 +125,7 @@ try {
 
     $stream->setProxy("56.156.50.69:80", "username", "password");
 
-    $stream->setCookie("./cookie.txt");
+    $stream->saveCookie("./cookie.txt");
 
     $stream->setPost([
         'client' => 'linux',

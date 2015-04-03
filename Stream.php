@@ -21,6 +21,13 @@ class Stream
     protected $headers = [];
 
     /**
+     * Array of additional HTTP cookies
+     *
+     * @var array
+     */
+    protected $cookies = [];
+
+    /**
      * Cache of CURL connection info
      *
      * @var array
@@ -162,7 +169,8 @@ class Stream
      * @param $data
      * @return $this
      */
-    public function setPost($data) {
+    public function setPost($data)
+    {
         $this->setOpt(CURLOPT_POST, true);
         $this->setOpt(CURLOPT_POSTFIELDS, $data);
 
@@ -308,6 +316,43 @@ class Stream
         return $this;
     }
 
+
+    /**
+     * Set up a cookie value
+     *
+     * @param $param
+     * @param $value
+     * @return $this
+     */
+    public function setCookie($param, $value)
+    {
+        $this->cookies = array_merge($this->cookies, [$param => $value]);
+
+        $cookies = '';
+        foreach ($this->cookies as $param => $value) {
+            $cookies .= $param . '=' . $value . '; ';
+        }
+
+        $this->setOpt(CURLOPT_COOKIE, $cookies);
+
+        return $this;
+    }
+
+    /**
+     * Set up an array of cookies
+     *
+     * @param array $params
+     * @return $this
+     */
+    public function pushCookie(array $params)
+    {
+        foreach ($params as $param => $value) {
+            $this->setCookie($param, $value);
+        }
+
+        return $this;
+    }
+
     /**
      * File for save cookie data
      *
@@ -315,7 +360,7 @@ class Stream
      * @return $this
      * @throws Exception
      */
-    public function setCookie($file)
+    public function saveCookie($file)
     {
         if (!file_exists($file)) {
             touch($file);
@@ -340,7 +385,13 @@ class Stream
     public function setHeader($param, $value)
     {
         $this->headers = array_merge($this->headers, [$param => $value]);
-        $this->setOpt(CURLOPT_HTTPHEADER, $this->headers);
+
+        $headers = [];
+        foreach ($this->headers as $param => $value) {
+            $headers[] = $param . ': ' . $value;
+        }
+
+        $this->setOpt(CURLOPT_HTTPHEADER, $headers);
 
         return $this;
     }
