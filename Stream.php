@@ -14,18 +14,13 @@ class Stream
     protected $curl = null;
 
     /**
-     * Array of additional HTTP headers
+     * Arrays of additional HTTP headers and cookies and options, used in this connection
      *
      * @var array
      */
     protected $headers = [];
-
-    /**
-     * Array of additional HTTP cookies
-     *
-     * @var array
-     */
     protected $cookies = [];
+    protected $options = [];
 
     /**
      * Cache of CURL connection info
@@ -35,6 +30,7 @@ class Stream
     protected $info = [];
 
     /**
+     * Cache of CURL error data
      *
      * @var array
      */
@@ -61,19 +57,12 @@ class Stream
     protected $raw = null;
 
     /**
-     * Array of CURL options, used in this connection
-     *
-     * @var array
-     */
-    protected $options = [];
-
-    /**
      * The number of seconds to wait while trying to connect
      * Use 0 to wait indefinitely
      *
      * @var int
      */
-    protected $connectTimeout = 10;
+    protected $connect_timeout = 10;
 
     /**
      *  The maximum number of seconds to allow cURL functions to execute
@@ -85,8 +74,12 @@ class Stream
 
     public function __construct($resource, \Closure $callback)
     {
+        if (!function_exists('curl_init')) {
+            throw new Exception('curl functions are not available', Exception::NOT_AVAILABLE);
+        }
+
         if (empty($resource)) {
-            throw new Exception("URL is empty", Exception::URL_IS_EMPTY);
+            throw new Exception('URL is empty', Exception::URL_IS_EMPTY);
         }
 
         // $resource consist of URL and additional GET params
@@ -107,7 +100,7 @@ class Stream
             }
         }
 
-        // init curl
+        // initialization of curl
         $this->curl = curl_init($resource);
 
         // set default options
@@ -117,7 +110,7 @@ class Stream
             CURLOPT_AUTOREFERER    => true,
             CURLOPT_FOLLOWLOCATION => true,
             CURLOPT_MAXREDIRS      => 3,
-            CURLOPT_CONNECTTIMEOUT => $this->connectTimeout,
+            CURLOPT_CONNECTTIMEOUT => $this->connect_timeout,
             CURLOPT_TIMEOUT        => $this->timeout,
         ];
         $this->pushOpt($default);
@@ -324,7 +317,6 @@ class Stream
 
         return $this;
     }
-
 
     /**
      * Set up a cookie value

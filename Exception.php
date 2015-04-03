@@ -8,4 +8,5 @@ class Exception extends \Exception {
     const URL_IS_EMPTY = 5;
     const INVALID_COOKIE_FILE = 6;
     const CLONING = 7;
+    const NOT_AVAILABLE = 8;
 }

@@ -21,11 +21,15 @@ class Streamer
 
     public function __construct($streams)
     {
+        if (!function_exists('curl_multi_init')) {
+            throw new Exception('curl multi functions are not available', Exception::NOT_AVAILABLE);
+        }
+
         if (!is_array($streams)) {
             $streams = [$streams];
         }
 
-        // инициализируем curl
+        // initialization of multi curl
         $this->curl = curl_multi_init();
 
         foreach ($streams as $stream) {
