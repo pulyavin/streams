@@ -85,12 +85,12 @@ class Streamer
                 }
             } while ($messages);
 
-            // помолимся, братья и сестры...
+            // in god we trust...
             usleep(1000);
 
         } while ($running);
 
-        // закрываем дескрипторы
+        // close descriptors
         $this->closeResource();
 
         return $this;
