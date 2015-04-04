@@ -14,13 +14,14 @@ class Stream
     protected $curl = null;
 
     /**
-     * Arrays of additional HTTP headers and cookies and options, used in this connection
+     * Arrays of additional HTTP headers, cookies, options and POST data, used in this connection
      *
      * @var array
      */
     protected $headers = [];
     protected $cookies = [];
     protected $options = [];
+    protected $post = [];
 
     /**
      * Cache of CURL connection info
@@ -38,12 +39,14 @@ class Stream
     protected $curl_error = null;
 
     /**
+     * Callback handler
      *
      * @var null
      */
     protected $callback = null;
 
     /**
+     * Cache of curl response
      *
      * @var null
      */
@@ -62,20 +65,20 @@ class Stream
      *
      * @var int
      */
-    protected $connect_timeout = 10;
+    protected $connect_timeout = 5;
 
     /**
      *  The maximum number of seconds to allow cURL functions to execute
      *
      * @var int
      */
-    protected $timeout = 10;
+    protected $timeout = 5;
 
 
     public function __construct($resource, \Closure $callback)
     {
         if (!function_exists('curl_init')) {
-            throw new Exception('curl functions are not available', Exception::NOT_AVAILABLE);
+            throw new Exception('Curl functions are not available', Exception::NOT_AVAILABLE);
         }
 
         if (empty($resource)) {
@@ -121,58 +124,11 @@ class Stream
         return $this;
     }
 
-    public function getRaw()
-    {
-        return $this->raw;
-    }
-
-    public function getResponse()
-    {
-        return $this->response;
-    }
-
     /**
-     * Set User Agent to HTTP headers
+     * Execute curl this Stream
      *
-     * @param $agent
-     * @return $this
-     */
-    public function setAgent($agent)
-    {
-        $this->setOpt(CURLOPT_USERAGENT, $agent);
-
-        return $this;
-    }
-
-    /**
-     * Set referer to HTTP headers
-     *
-     * @param $referer
-     * @return $this
-     */
-    public function setReferer($referer)
-    {
-        $this->setOpt(CURLOPT_REFERER, $referer);
-
-        return $this;
-    }
-
-    /**
-     * Add POST data to connection
-     *
-     * @param $data
-     * @return $this
-     */
-    public function setPost($data)
-    {
-        $this->setOpt(CURLOPT_POST, true);
-        $this->setOpt(CURLOPT_POSTFIELDS, $data);
-
-        return $this;
-    }
-
-    /**
-     * Execute this Stream
+     * @return mixed|null
+     * @throws Exception
      */
     public function exec()
     {
@@ -183,10 +139,32 @@ class Stream
         $errno = 0;
 
         if (($response = curl_exec($this->curl)) === false) {
-            $errno = curl_errno($this->curl);
+            $this->closeResource();
+
+            throw new Exception(curl_error($this->curl), curl_errno($this->curl));
         }
 
-        return $this->setResponse($errno, $response);
+        return $this->setResponse(curl_error($this->curl), $response);
+    }
+
+    /**
+     * Getter of raw, returned by the callback function
+     *
+     * @return null
+     */
+    public function getRaw()
+    {
+        return $this->raw;
+    }
+
+    /**
+     * Getter of CURL response
+     *
+     * @return null
+     */
+    public function getResponse()
+    {
+        return $this->response;
     }
 
     /**
@@ -198,42 +176,6 @@ class Stream
     public function getResource($boolean = false)
     {
         return $boolean ? (int)$this->curl : $this->curl;
-    }
-
-    /**
-     * Set response and call callback function
-     *
-     * @param $errno
-     * @param $response
-     * @return mixed|null
-     */
-    public function setResponse($errno, $response)
-    {
-        $this->response = $response;
-
-        $this->curl_errno = $errno;
-        $this->curl_error = curl_error($this->curl);
-
-        $this->raw = call_user_func($this->callback, $this);
-
-        $this->closeResource();
-
-        return $this->raw;
-    }
-
-    /**
-     * Return curl options
-     *
-     * @param null $param
-     * @return array|null
-     */
-    public function getOpt($param = null)
-    {
-        if (empty($param)) {
-            return $this->options;
-        } else {
-            return isset($this->options[$param]) ? $this->options[$param] : null;
-        }
     }
 
     /**
@@ -270,6 +212,103 @@ class Stream
     }
 
     /**
+     * Set connection time and timeout values
+     *
+     * @param $connect_timeout The number of seconds to wait while trying to connect. Use 0 to wait indefinitely
+     * @param $timeout The maximum number of seconds to allow cURL functions to execute
+     * @return $this
+     */
+    public function setTimeout($connect_timeout, $timeout)
+    {
+        $this->connect_timeout = $connect_timeout;
+        $this->timeout = $timeout;
+
+        $this->setOpt(CURLOPT_CONNECTTIMEOUT, $this->connect_timeout);
+        $this->setOpt(CURLOPT_TIMEOUT, $this->timeout);
+
+        return $this;
+    }
+
+    /**
+     * Set User Agent to HTTP headers
+     *
+     * @param $agent
+     * @return $this
+     */
+    public function setAgent($agent)
+    {
+        $this->setOpt(CURLOPT_USERAGENT, $agent);
+
+        return $this;
+    }
+
+    /**
+     * Set referer to HTTP headers
+     *
+     * @param $referer
+     * @return $this
+     */
+    public function setReferer($referer)
+    {
+        $this->setOpt(CURLOPT_REFERER, $referer);
+
+        return $this;
+    }
+
+    /**
+     * Set response and call callback function
+     *
+     * @param $errno
+     * @param $response
+     * @return mixed|null
+     */
+    public function setResponse($errno, $response)
+    {
+        $this->response = $response;
+
+        $this->curl_errno = $errno;
+        $this->curl_error = curl_error($this->curl);
+
+        $this->raw = call_user_func($this->callback, $this);
+
+        $this->closeResource();
+
+        return $this->raw;
+    }
+
+    /**
+     * Set up a param value of POST data
+     *
+     * @param $param
+     * @param $value
+     * @return $this
+     */
+    public function setPost($param, $value)
+    {
+        $this->post = array_merge($this->post, [$param => $value]);
+
+        $this->setOpt(CURLOPT_POST, true);
+        $this->setOpt(CURLOPT_POSTFIELDS, $this->post);
+
+        return $this;
+    }
+
+    /**
+     * Set up an array of POST data
+     *
+     * @param $params
+     * @return $this
+     */
+    public function pushPost(array $params)
+    {
+        foreach ($params as $param => $value) {
+            $this->setPost($param, $value);
+        }
+
+        return $this;
+    }
+
+    /**
      * Set up a constant value
      *
      * @param $constant
@@ -296,6 +335,21 @@ class Stream
         curl_setopt_array($this->curl, $constants);
 
         return $this;
+    }
+
+    /**
+     * Return curl options
+     *
+     * @param null $param
+     * @return array|null
+     */
+    public function getOpt($param = null)
+    {
+        if (empty($param)) {
+            return $this->options;
+        } else {
+            return isset($this->options[$param]) ? $this->options[$param] : null;
+        }
     }
 
     /**
@@ -416,9 +470,13 @@ class Stream
      */
     public function closeResource()
     {
-        if ($this->isResource()) {
-            curl_close($this->curl);
+        if (!$this->isResource()) {
+            return false;
         }
+
+        curl_close($this->curl);
+
+        return true;
     }
 
     /**

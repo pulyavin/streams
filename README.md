@@ -43,6 +43,7 @@ try {
     // additional Stream tools
     $stream3->setProxy("56.156.50.69:80", "username", "password");
     $stream3->saveCookie("./cookie.txt");
+    $stream3->setTimeout(3, 3);
 
     // or this way...
     $stream4 = new Stream("http://yiiframework.com", $callback);
@@ -69,12 +70,12 @@ try {
     $stream8 = new Stream("http://framework.zend.com", $callback);
     
     // add pool of Streams in constructor
-    $streamer = new Streamer([$stream1, $stream2, $stream3, $stream4]);
+    $streamer = new Streamer([$stream1, $stream2, $stream3]);
     // or add them separately using method add() in Streamer-object
-    $streamer->add($stream5);
-    $streamer->add($stream6);
-    $streamer->add($stream7);
-    $streamer->add($stream8);
+    $streamer->setStream($stream4);
+    $streamer->setStream($stream5);
+    // or push
+    $streamer->pushStream([$stream6, $stream7, $stream8]);
 
     // Streams execution
     $streamer->exec();
@@ -130,9 +131,10 @@ try {
 
     $stream->saveCookie("./cookie.txt");
 
-    $stream->setPost([
-        'client' => 'linux',
-        'ie'     => 'utf-8',
+    // HTTP verb is POST, and POST data is
+    $stream->setPost('client' , 'linux');
+    $stream->setPost('ie' , 'utf-8');
+    $stream->pushPost([
         'oe'     => 'utf-8',
         'ei'     => 'L6gzVZ31CAeZ4cTlpICgBA',
     ]);
