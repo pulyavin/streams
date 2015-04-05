@@ -97,15 +97,6 @@ use pulyavin\streams\Stream;
 
 $search = "some line";
 
-$callback = function ($stream) use ($search) {
-    /** @var $stream Stream */
-    var_dump($stream->getError());
-    var_dump($stream->getOpt());
-
-    // to use in Streamer::map
-    return stripos($stream->getResponse(), $search);
-};
-
 try {
     $stream = new Stream([
         "http://google.com",
@@ -113,7 +104,7 @@ try {
             'q'       => 'Hello world!',
             'channel' => 'fs'
         ]
-    ], $callback);
+    ]);
 
     $stream->setOpt(CURLOPT_HEADER, true);
     $stream->setOpt(CURLOPT_ENCODING, "gzip, deflate");
@@ -147,7 +138,14 @@ try {
         'X-PARAM-FOURTH' => 'fourth',
     ]);
 
-    $raw = $stream->exec();
+    $raw = $stream->exec(function ($stream) use ($search) {
+        /** @var $stream Stream */
+        var_dump($stream->getError());
+        var_dump($stream->getOpt());
+        
+        // to use in Streamer::map
+        return stripos($stream->getResponse(), $search);
+    });
     
     var_dump($raw);
 }

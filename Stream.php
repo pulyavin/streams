@@ -75,7 +75,7 @@ class Stream
     protected $timeout = 5;
 
 
-    public function __construct($resource, \Closure $callback)
+    public function __construct($resource, \Closure $callback = null)
     {
         if (!function_exists('curl_init')) {
             throw new Exception('Curl functions are not available', Exception::NOT_AVAILABLE);
@@ -127,21 +127,24 @@ class Stream
     /**
      * Execute curl this Stream
      *
+     * @param callable $callback
      * @return mixed|null
      * @throws Exception
      */
-    public function exec()
+    public function exec(\Closure $callback = null)
     {
         if (!$this->isResource()) {
             throw new Exception("Is not a valid cURL Handle resource", Exception::INVALID_CURL);
         }
 
-        $errno = 0;
-
         if (($response = curl_exec($this->curl)) === false) {
             $this->closeResource();
 
             throw new Exception(curl_error($this->curl), curl_errno($this->curl));
+        }
+
+        if (!empty($callback)) {
+            $this->callback = $callback;
         }
 
         return $this->setResponse(curl_error($this->curl), $response);
@@ -269,7 +272,9 @@ class Stream
         $this->curl_errno = $errno;
         $this->curl_error = curl_error($this->curl);
 
-        $this->raw = call_user_func($this->callback, $this);
+        if (!empty($this->callback)) {
+            $this->raw = call_user_func($this->callback, $this);
+        }
 
         $this->closeResource();
 
