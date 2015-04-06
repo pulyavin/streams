@@ -259,6 +259,25 @@ class Stream
     }
 
     /**
+     * Set up a SSL query
+     *
+     * @param $file
+     * @return $this
+     * @throws Exception
+     */
+    public function setSsl($file)
+    {
+        if (($file = realpath($file)) == false) {
+            throw new Exception("Invalid path to certificate file", Exception::INVALID_CA_FILE);
+        }
+
+        $this->setOpt(CURLOPT_SSL_VERIFYPEER, true);
+        $this->setOpt(CURLOPT_CAINFO , $file);
+
+        return $this;
+    }
+
+    /**
      * Set response and call callback function
      *
      * @param $errno

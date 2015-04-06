@@ -114,13 +114,15 @@ try {
         CURLOPT_TIMEOUT        => 5,
     ]);
 
+    $stream->setSsl("./certificate.cer");
+
     $stream->setAgent("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)");
 
     $stream->setReferer("http://yandex.ru/");
 
     $stream->setProxy("56.156.50.69:80", "username", "password");
 
-    $stream->saveCookie("./cookie.txt");
+    $stream->saveCookie("./cookies.txt");
 
     // HTTP verb is POST, and POST data is
     $stream->setPost('client' , 'linux');

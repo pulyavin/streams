@@ -10,6 +10,7 @@ class Exception extends \Exception
     const INVALID_COOKIE_FILE = 1006;
     const CLONING = 1007;
     const NOT_AVAILABLE = 1008;
+    const INVALID_CA_FILE = 1009;
 
     public static $error_codes = [
         '1'  => 'CURLE_UNSUPPORTED_PROTOCOL',
