@@ -62,7 +62,7 @@ try {
         'banner' => '1',
         'guest'  => '1',
     ]);
-    // and we will be have in HTTP headers:
+    // and we got such HTTP headers
     // Cookie: name=John; last=1418197053; banner=1; guest=1;
 
     $stream6 = new Stream("http://kohanaframework.org", $callback);
