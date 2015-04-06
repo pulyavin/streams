@@ -217,8 +217,8 @@ class Stream
     /**
      * Set connection time and timeout values
      *
-     * @param $connect_timeout The number of seconds to wait while trying to connect. Use 0 to wait indefinitely
-     * @param $timeout The maximum number of seconds to allow cURL functions to execute
+     * @param $connect_timeout
+     * @param $timeout
      * @return $this
      */
     public function setTimeout($connect_timeout, $timeout)
