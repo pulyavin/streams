@@ -54,13 +54,6 @@ class Stream
     protected $response = null;
 
     /**
-     * The raw returned by the callback function
-     *
-     * @var null
-     */
-    protected $raw = null;
-
-    /**
      * The number of seconds to wait while trying to connect
      * Use 0 to wait indefinitely
      *
@@ -153,16 +146,6 @@ class Stream
         }
 
         return $this->setResponse(curl_error($this->curl), $response);
-    }
-
-    /**
-     * Getter of raw, returned by the callback function
-     *
-     * @return null
-     */
-    public function getRaw()
-    {
-        return $this->raw;
     }
 
     /**
@@ -297,20 +280,26 @@ class Stream
         $this->curl_error = curl_error($this->curl);
 
         // call success callback
+        $raw = null;
         if ($errno == 0 && is_callable($this->callbackSuccess)) {
-            $this->raw = call_user_func($this->callbackSuccess, $this);
+            $raw = call_user_func($this->callbackSuccess, $this);
         }
         // call fail callback
         else if ($errno != 0 && is_callable($this->callbackFail)) {
-            $this->raw = call_user_func($this->callbackFail, $this);
+            $raw = call_user_func($this->callbackFail, $this);
         }
         else if ($errno == 0) {
-            $this->raw = $response;
+            $raw = $response;
+        }
+
+        // if callback is modificate response
+        if (!empty($raw)) {
+            $this->response = $raw;
         }
 
         $this->closeResource();
 
-        return $this->raw;
+        return $this->getResponse();
     }
 
     /**
@@ -537,12 +526,10 @@ class Stream
     }
 
     public function __toString() {
-        if (!empty($this->raw) && is_string($this->raw)) {
-            return $this->raw;
-        }
+        $response = $this->getResponse();
 
-        if (!empty($this->response)) {
-            return $this->response;
+        if (!empty($response)) {
+            return $response;
         }
 
         return;

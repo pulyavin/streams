@@ -113,7 +113,7 @@ class Streamer
     }
 
     /**
-     * Applies the callback to the raw of Streams
+     * Applies the callback to the response of Streams
      *
      * @param callable $callback
      * @return array
@@ -124,12 +124,12 @@ class Streamer
 
         foreach ($this->streams as $stream) {
             /** @var $stream Stream */
-            $raw = $stream->getRaw();
-            if (empty($raw)) {
+            $response = $stream->getResponse();
+            if (empty($response)) {
                 continue;
             }
 
-            $map[] = call_user_func($callback, $stream->getRaw());
+            $map[] = call_user_func($callback, $response);
         }
 
         return $map;

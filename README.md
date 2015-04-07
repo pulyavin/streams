@@ -98,8 +98,8 @@ try {
     // Streams execution
     $streamer->exec();
 
-    $map = $streamer->map(function ($raw) {
-        return strlen($raw);
+    $map = $streamer->map(function ($response) {
+        return strlen($response);
     });
 
     var_dump($map);
