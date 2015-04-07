@@ -5,12 +5,17 @@ PHP wrapper for multi curl
 use pulyavin\streams\Stream;
 use pulyavin\streams\Streamer;
 
-$callback = function ($stream) {
+$callbackSuccess = function ($stream) {
     /** @var $stream Stream */
     var_dump($stream->getInfo("url"));
 
     // to use in Streamer::map
     return $stream->getResponse();
+};
+
+$callbackFail = function ($stream) {
+    /** @var $stream Stream */
+    var_dump($stream->getError());
 };
 
 $callbackSymfony = function ($stream) {
@@ -24,7 +29,7 @@ $callbackSymfony = function ($stream) {
 
 try {
     // new Stream object
-    $stream1 = new Stream("http://laravel.com", $callback);
+    $stream1 = new Stream("http://laravel.com", $callbackSuccess, $callbackFail);
 
     // new Stream object with additional GET params
     // URL will be http://phalconphp.com?page=download&lang=eng
@@ -34,7 +39,7 @@ try {
             'page' => 'download',
             'lang' => 'eng'
         ]
-    ], $callback);
+    ], $callbackSuccess);
 
     // new Stream object with additional CURL-options
     $stream3 = new Stream("http://symfony.com", $callbackSymfony);
@@ -46,14 +51,14 @@ try {
     $stream3->setTimeout(3, 3);
 
     // or this way...
-    $stream4 = new Stream("http://yiiframework.com", $callback);
+    $stream4 = new Stream("http://yiiframework.com", $callbackSuccess);
     $stream4->pushOpt([
         CURLOPT_HEADER         => true,
         CURLOPT_CONNECTTIMEOUT => 5,
         CURLOPT_TIMEOUT        => 5,
     ]);
 
-    $stream5 = new Stream("http://www.codeigniter.com", $callback);
+    $stream5 = new Stream("http://www.codeigniter.com", $callbackSuccess);
     // set some cookie params
     $stream5->setCookie("name", "John");
     $stream5->setCookie("last", "1418197053");
@@ -65,9 +70,22 @@ try {
     // and we got such HTTP headers
     // Cookie: name=John; last=1418197053; banner=1; guest=1;
 
-    $stream6 = new Stream("http://kohanaframework.org", $callback);
-    $stream7 = new Stream("http://cakephp.org", $callback);
-    $stream8 = new Stream("http://framework.zend.com", $callback);
+    $stream6 = new Stream("http://kohanaframework.org",
+        function($stream) {
+            /** @var $stream Stream */
+            var_dump($stream->getInfo("url"));
+        
+            // to use in Streamer::map
+            return $stream->getResponse();
+        },
+        function($stream) {
+            /** @var $stream Stream */
+            var_dump($stream->getError());
+        }
+    );
+    
+    $stream7 = new Stream("http://cakephp.org", $callbackSuccess);
+    $stream8 = new Stream("http://framework.zend.com", $callbackSuccess);
     
     // add pool of Streams in constructor
     $streamer = new Streamer([$stream1, $stream2, $stream3]);

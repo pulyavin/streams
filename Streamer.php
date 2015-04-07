@@ -124,6 +124,11 @@ class Streamer
 
         foreach ($this->streams as $stream) {
             /** @var $stream Stream */
+            $raw = $stream->getRaw();
+            if (empty($raw)) {
+                continue;
+            }
+
             $map[] = call_user_func($callback, $stream->getRaw());
         }
 
