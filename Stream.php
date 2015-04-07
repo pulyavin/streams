@@ -43,8 +43,8 @@ class Stream
      *
      * @var null
      */
-    protected $successCallback = null;
-    protected $failCallback = null;
+    protected $callbackSuccess = null;
+    protected $callbackFail = null;
 
     /**
      * Cache of curl response
@@ -76,7 +76,7 @@ class Stream
     protected $timeout = 5;
 
 
-    public function __construct($resource, \Closure $successCallback = null, \Closure $failCallback = null)
+    public function __construct($resource, \Closure $callbackSuccess = null, \Closure $callbackFail = null)
     {
         if (!function_exists('curl_init')) {
             throw new Exception('Curl functions are not available', Exception::NOT_AVAILABLE);
@@ -120,8 +120,8 @@ class Stream
         $this->pushOpt($default);
 
         // fix callback-functions
-        $this->successCallback = $successCallback;
-        $this->failCallback = $failCallback;
+        $this->callbackSuccess = $callbackSuccess;
+        $this->callbackFail = $callbackFail;
 
         return $this;
     }
@@ -129,12 +129,12 @@ class Stream
     /**
      * Execute curl this Stream
      *
-     * @param callable $successCallback
-     * @param callable $failCallback
+     * @param callable $callbackSuccess
+     * @param callable $callbackFail
      * @return mixed|null
      * @throws Exception
      */
-    public function exec(\Closure $successCallback = null, \Closure $failCallback = null)
+    public function exec(\Closure $callbackSuccess = null, \Closure $callbackFail = null)
     {
         if (!$this->isResource()) {
             throw new Exception("Is not a valid cURL Handle resource", Exception::INVALID_CURL);
@@ -142,14 +142,14 @@ class Stream
 
         $response = curl_exec($this->curl);
 
-        // fix successCallback is not empty
-        if (!empty($successCallback)) {
-            $this->successCallback = $successCallback;
+        // fix callbackSuccess is not empty
+        if (!empty($callbackSuccess)) {
+            $this->callbackSuccess = $callbackSuccess;
         }
 
-        // fix failCallback is not empty
-        if (!empty($failCallback)) {
-            $this->failCallback = $failCallback;
+        // fix callbackFail is not empty
+        if (!empty($callbackFail)) {
+            $this->callbackFail = $callbackFail;
         }
 
         return $this->setResponse(curl_error($this->curl), $response);
@@ -297,13 +297,13 @@ class Stream
         $this->curl_error = curl_error($this->curl);
 
         // call success callback
-        if ($errno == 0 && is_callable($this->successCallback)) {
-            $this->raw = call_user_func($this->successCallback, $this);
+        if ($errno == 0 && is_callable($this->callbackSuccess)) {
+            $this->raw = call_user_func($this->callbackSuccess, $this);
         }
 
         // call fail callback
-        if ($errno != 0 && is_callable($this->failCallback)) {
-            $this->raw = call_user_func($this->failCallback, $this);
+        if ($errno != 0 && is_callable($this->callbackFail)) {
+            $this->raw = call_user_func($this->callbackFail, $this);
         }
 
         $this->closeResource();
