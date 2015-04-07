@@ -300,10 +300,12 @@ class Stream
         if ($errno == 0 && is_callable($this->callbackSuccess)) {
             $this->raw = call_user_func($this->callbackSuccess, $this);
         }
-
         // call fail callback
-        if ($errno != 0 && is_callable($this->callbackFail)) {
+        else if ($errno != 0 && is_callable($this->callbackFail)) {
             $this->raw = call_user_func($this->callbackFail, $this);
+        }
+        else if ($errno == 0) {
+            $this->raw = $response;
         }
 
         $this->closeResource();
