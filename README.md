@@ -158,16 +158,9 @@ try {
         'X-PARAM-FOURTH' => 'fourth',
     ]);
 
-    $raw = $stream->exec(function ($stream) use ($search) {
-        /** @var $stream Stream */
-        var_dump($stream->getError());
-        var_dump($stream->getOpt());
-        
-        // to use in Streamer::map
-        return stripos($stream->getResponse(), $search);
-    });
+    $response = $stream->exec();
     
-    var_dump($raw);
+    var_dump($response);
 }
 catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
