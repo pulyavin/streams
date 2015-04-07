@@ -149,6 +149,34 @@ class Stream
     }
 
     /**
+     * Set response and call callback function
+     *
+     * @param $errno
+     * @param $response
+     * @return mixed|null
+     */
+    public function setResponse($errno, $response)
+    {
+        $this->response = $response;
+
+        $this->curl_errno = $errno;
+        $this->curl_error = curl_error($this->curl);
+
+        // call success callback
+        if ($errno == 0 && is_callable($this->callbackSuccess)) {
+            $this->response = call_user_func($this->callbackSuccess, $this);
+        }
+        // call fail callback
+        else if ($errno != 0 && is_callable($this->callbackFail)) {
+            $this->response = call_user_func($this->callbackFail, $this);
+        }
+
+        $this->closeResource();
+
+        return $this->getResponse();
+    }
+
+    /**
      * Getter of CURL response
      *
      * @return null
@@ -263,43 +291,6 @@ class Stream
         $this->setOpt(CURLOPT_CAINFO , $file);
 
         return $this;
-    }
-
-    /**
-     * Set response and call callback function
-     *
-     * @param $errno
-     * @param $response
-     * @return mixed|null
-     */
-    public function setResponse($errno, $response)
-    {
-        $this->response = $response;
-
-        $this->curl_errno = $errno;
-        $this->curl_error = curl_error($this->curl);
-
-        // call success callback
-        $raw = null;
-        if ($errno == 0 && is_callable($this->callbackSuccess)) {
-            $raw = call_user_func($this->callbackSuccess, $this);
-        }
-        // call fail callback
-        else if ($errno != 0 && is_callable($this->callbackFail)) {
-            $raw = call_user_func($this->callbackFail, $this);
-        }
-        else if ($errno == 0) {
-            $raw = $response;
-        }
-
-        // if callback is modificate response
-        if (!empty($raw)) {
-            $this->response = $raw;
-        }
-
-        $this->closeResource();
-
-        return $this->getResponse();
     }
 
     /**
