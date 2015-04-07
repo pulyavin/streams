@@ -535,4 +535,16 @@ class Stream
     {
         throw new Exception("Cloning is prohibited", Exception::CLONING);
     }
+
+    public function __toString() {
+        if (!empty($this->raw) && is_string($this->raw)) {
+            return $this->raw;
+        }
+
+        if (!empty($this->response)) {
+            return $this->response;
+        }
+
+        return;
+    }
 }
