@@ -162,6 +162,8 @@ class Stream
         $this->curl_errno = $errno;
         $this->curl_error = curl_error($this->curl);
 
+        $this->info = curl_getinfo($this->curl);
+
         // call success callback
         if ($errno == 0 && is_callable($this->callbackSuccess)) {
             $this->response = call_user_func($this->callbackSuccess, $this);
@@ -206,7 +208,7 @@ class Stream
     public function getInfo($param = null)
     {
         if (empty($this->info)) {
-            $this->info = curl_getinfo($this->curl);
+            return false;
         }
 
         if (empty($param)) {
