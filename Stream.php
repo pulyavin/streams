@@ -318,7 +318,7 @@ class Stream
      * @param $params
      * @return $this
      */
-    public function pushPost(array $params)
+    public function pushPost(array $params = [])
     {
         foreach ($params as $param => $value) {
             $this->setPost($param, $value);
