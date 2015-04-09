@@ -350,7 +350,7 @@ class Stream
      */
     public function pushOpt(array $constants)
     {
-        $this->options += $constants;
+        $this->options = $constants + $this->options;
         curl_setopt_array($this->curl, $constants);
 
         return $this;
