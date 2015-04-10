@@ -381,7 +381,9 @@ class Stream
      */
     public function setProxy($proxy, $login = null, $password = null)
     {
-        $this->setOpt(CURLOPT_PROXY, $proxy);
+        if (!empty($proxy)) {
+            $this->setOpt(CURLOPT_PROXY, $proxy);
+        }
 
         if (!empty($login)) {
             $auth = $login . ":" . $password;
