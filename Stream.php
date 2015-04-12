@@ -164,6 +164,8 @@ class Stream
 
         $this->info = curl_getinfo($this->curl);
 
+        $this->closeResource();
+
         // call success callback
         if ($errno == 0 && is_callable($this->callbackSuccess)) {
             $this->response = call_user_func($this->callbackSuccess, $this);
@@ -172,8 +174,6 @@ class Stream
         else if ($errno != 0 && is_callable($this->callbackFail)) {
             $this->response = call_user_func($this->callbackFail, $this);
         }
-
-        $this->closeResource();
 
         return $this->getResponse();
     }
