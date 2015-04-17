@@ -1,5 +1,24 @@
-# streams
-PHP wrapper for multi curl
+streams
+===============
+
+"streams" is a PHP wrapper for multi curl
+
+Installation
+------------
+0. Install [Composer](http://getcomposer.org/):
+
+    ```
+    curl -sS https://getcomposer.org/installer | php
+    ```
+
+0. Add the streams dependency:
+
+    ```
+    php composer.phar require pulyavin/streams:0.1
+    ```
+
+Usage
+-----
 
 ```php
 use pulyavin\streams\Stream;
