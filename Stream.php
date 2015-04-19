@@ -487,6 +487,21 @@ class Stream
     }
 
     /**
+     * Verifies the success of this request
+     *
+     * @return bool
+     */
+    public function isHttpSuccess() {
+        $successCodes = [200, 201, 202, 203, 204, 205, 206, 207, 226];
+
+        if (in_array($this->getInfo("http_code"), $successCodes)) {
+            return true;
+        }
+
+        return false;
+    }
+
+    /**
      * Destroy curl resource
      */
     public function closeResource()
