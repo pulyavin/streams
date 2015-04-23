@@ -21,7 +21,7 @@ class Stream
     protected $headers = [];
     protected $cookies = [];
     protected $options = [];
-    protected $post = [];
+    protected $post;
 
     /**
      * Cache of CURL connection info
@@ -297,14 +297,24 @@ class Stream
 
     /**
      * Set up a param value of POST data
+     * If value is empty, then param use as raw of POST data
      *
      * @param $param
      * @param $value
      * @return $this
      */
-    public function setPost($param, $value)
+    public function setPost($param, $value = null)
     {
-        $this->post = array_merge($this->post, [$param => $value]);
+        if (is_null($value)) {
+            $this->post = $param;
+        }
+        else {
+            if (empty($this->post) || !is_array($this->post)) {
+                $this->post = [];
+            }
+
+            $this->post = array_merge($this->post, [$param => $value]);
+        }
 
         $this->setOpt(CURLOPT_POST, true);
         $this->setOpt(CURLOPT_POSTFIELDS, $this->post);

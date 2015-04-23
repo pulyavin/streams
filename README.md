@@ -14,7 +14,7 @@ Installation
 0. Add the streams dependency:
 
     ```
-    php composer.phar require pulyavin/streams:0.1
+    php composer.phar require 'pulyavin/streams:0.*' 
     ```
 
 Usage
