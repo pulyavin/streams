@@ -185,3 +185,18 @@ catch (pulyavin\streams\Exception $e) {
     echo $e->getMessage();
 }
 ```
+
+So you can get a random user agent, like this
+
+```php
+use pulyavin\streams\UserAgents;
+
+$agent = new UserAgents;
+
+// get random user agent
+var_dump($agent->getRand());
+
+// get random user agent of list
+var_dump($agent->getRand(['FFWin', 'FFMac', 'FFLin']));
+```
+
