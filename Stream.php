@@ -277,20 +277,88 @@ class Stream
     }
 
     /**
-     * Set up a SSL query
+     * Start cURL from verifying the peer's certificate
      *
-     * @param $file
+     * @param $path
      * @return $this
      * @throws Exception
      */
-    public function setSsl($file)
+    public function setCA($path)
     {
-        if (($file = realpath($file)) == false) {
+        $path = realpath($path);
+
+        if ($path == false) {
             throw new Exception("Invalid path to certificate file", Exception::INVALID_CA_FILE);
         }
 
         $this->setOpt(CURLOPT_SSL_VERIFYPEER, true);
-        $this->setOpt(CURLOPT_CAINFO , $file);
+
+        if (is_dir($path)) {
+            $this->setOpt(CURLOPT_CAPATH , $path);
+        }
+        else {
+            $this->setOpt(CURLOPT_CAINFO , $path);
+        }
+
+        return $this;
+    }
+
+    /**
+     * Set up private SSL key
+     *
+     * @param $file
+     * @param null $password
+     * @param string $type
+     * @return $this
+     * @throws Exception
+     */
+    public function setSslKey($file, $password = null, $type = "PEM")
+    {
+        $allowed = ["PEM", "DER", "ENG"];
+
+        $file = realpath($file);
+
+        if ($file == false || !is_file($file)) {
+            throw new Exception("Invalid path to key file", Exception::INVALID_SSL_CERT_FILE);
+        }
+
+        if (!in_array($type, $allowed)) {
+            throw new Exception("Invalid type of key file", Exception::INVALID_SSL_CERT_TYPE);
+        }
+
+        $this->setOpt(CURLOPT_SSLKEY , $file);
+        $this->setOpt(CURLOPT_SSLKEYPASSWD , $password);
+        $this->setOpt(CURLOPT_SSLKEYTYPE, $type);
+
+        return $this;
+    }
+
+    /**
+     * Set up PEM formatted certificate
+     *
+     * @param $file
+     * @param null $password
+     * @param string $type
+     * @return $this
+     * @throws Exception
+     */
+    public function setSslCert($file, $password = null, $type = "PEM")
+    {
+        $allowed = ["PEM", "DER", "ENG"];
+
+        $file = realpath($file);
+
+        if ($file == false || !is_file($file)) {
+            throw new Exception("Invalid path to cert file", Exception::INVALID_SSL_KEY_FILE);
+        }
+
+        if (!in_array($type, $allowed)) {
+            throw new Exception("Invalid type of cert file", Exception::INVALID_SSL_KEY_TYPE);
+        }
+
+        $this->setOpt(CURLOPT_SSLCERT , $file);
+        $this->setOpt(CURLOPT_SSLCERTPASSWD , $password);
+        $this->setOpt(CURLOPT_SSLCERTTYPE , $type);
 
         return $this;
     }

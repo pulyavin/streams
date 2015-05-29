@@ -11,6 +11,10 @@ class Exception extends \Exception
     const CLONING = 1007;
     const NOT_AVAILABLE = 1008;
     const INVALID_CA_FILE = 1009;
+    const INVALID_SSL_KEY_FILE = 1010;
+    const INVALID_SSL_KEY_TYPE = 1011;
+    const INVALID_SSL_CERT_FILE = 1012;
+    const INVALID_SSL_CERT_TYPE = 1013;
 
     public static $error_codes = [
         '1'  => 'CURLE_UNSUPPORTED_PROTOCOL',

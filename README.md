@@ -151,7 +151,7 @@ try {
         CURLOPT_TIMEOUT        => 5,
     ]);
 
-    $stream->setSsl("./certificate.cer");
+    $stream->setCA("./certificate.cer");
 
     $stream->setAgent("Mozilla/5.0 (compatible; YandexBot/3.0; +http://yandex.com/bots)");
 
