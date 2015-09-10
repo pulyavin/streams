@@ -143,6 +143,8 @@ try {
         ]
     ]);
 
+    $stream->setAuth("mylogin", "mysafepassword");
+
     $stream->setOpt(CURLOPT_HEADER, true);
     $stream->setOpt(CURLOPT_ENCODING, "gzip, deflate");
 

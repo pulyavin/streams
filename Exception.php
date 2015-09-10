@@ -15,6 +15,7 @@ class Exception extends \Exception
     const INVALID_SSL_KEY_TYPE = 1011;
     const INVALID_SSL_CERT_FILE = 1012;
     const INVALID_SSL_CERT_TYPE = 1013;
+    const UNDEFINED_AUTH_METHOD = 1014;
 
     public static $error_codes = [
         '1'  => 'CURLE_UNSUPPORTED_PROTOCOL',

@@ -233,6 +233,41 @@ class Stream
     }
 
     /**
+     * Set HTTP auth
+     *
+     * @param $login
+     * @param null $password
+     * @param int $type
+     * @return $this
+     * @throws Exception
+     */
+    public function setAuth($login, $password = null, $type = CURLAUTH_ANY)
+    {
+        $allow = [
+            CURLAUTH_BASIC,
+            CURLAUTH_DIGEST,
+            CURLAUTH_GSSNEGOTIATE,
+            CURLAUTH_NTLM,
+            CURLAUTH_ANY,
+            CURLAUTH_ANYSAFE
+        ];
+
+        if (!in_array($type, $allow)) {
+            throw new Exception("Undefined auth method", Exception::UNDEFINED_AUTH_METHOD);
+        }
+
+        $auth = $login;
+        if (!empty($password)) {
+            $auth .= ":" . $password;
+        }
+
+        $this->setOpt(CURLOPT_USERPWD, $auth);
+        $this->setOpt(CURLOPT_HTTPAUTH, $type);
+
+        return $this;
+    }
+
+    /**
      * Set connection time and timeout values
      *
      * @param $connect_timeout
